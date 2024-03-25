@@ -61,6 +61,7 @@ export class AppController extends BaseController {
   async tcp_getDeviceById(id: string): Promise<EldResponse | Error> {
     let device;
     let exception;
+    
 
     try {
       Logger.log(`getDeviceById method call with id:${id}`);
