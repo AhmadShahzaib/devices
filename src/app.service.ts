@@ -147,7 +147,7 @@ export class AppService extends BaseService<EldDocument> {
   find = (options) => {
     try {
       const query = this.eldModel.find(options);
-      query.and([{ isActive: options.isActive }]);
+      query.and([{ isDeleted: false }]);
       return query;
     } catch (err) {
       Logger.error({ message: err.message, stack: err.stack });
