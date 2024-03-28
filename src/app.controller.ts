@@ -45,6 +45,8 @@ import IsActiveDecorators from './decorators/isActive';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import EldDocument from 'mongoDb/document/document';
 import { uploadDocument } from 'shared/uploadDocument';
+import { isActiveinActive } from 'utils/active';
+import { Types } from 'mongoose';
 
 @Controller('ELD')
 @ApiTags('ELD')
@@ -109,6 +111,7 @@ export class AppController extends BaseController {
     }
   }
 
+  // @------------------- Get Eld API controller -------------------
   @GetDecorators()
   async getEldDevice(
     @Query(ListingParamsValidationPipe) queryParams: ListingParams,
@@ -121,18 +124,40 @@ export class AppController extends BaseController {
         queryParams;
       const { tenantId: id } = request.user ?? ({ tenantId: undefined } as any);
       options['$and'] = [{ tenantId: id }];
+
+      let isActive = queryParams.isActive;
+      let arr = [];
+      arr.push(isActive);
+      if (arr.includes('true')) {
+        isActive = true;
+      } else {
+        isActive = false;
+      }
+
       if (search) {
         options['$or'] = [];
         searchableAttributes.forEach((attribute) => {
           options['$or'].push({ [attribute]: new RegExp(search, 'i') });
         });
+        if (arr[0]) {
+          options['$and'] = [];
+          isActiveinActive.forEach((attribute) => {
+            options['$and'].push({ [attribute]: isActive });
+          });
+        }
+      } else {
+        if (arr[0]) {
+          options['$or'] = [];
+
+          isActiveinActive.forEach((attribute) => {
+            options['$or'].push({ [attribute]: isActive });
+          });
+        }
       }
-      let isActive = queryParams?.isActive;
-      if (isActive) {
-        // options['$and'] = [];
-       
-          options['$and'].push({ ['isActive']: isActive });
-      
+      if (options.hasOwnProperty('$and')) {
+        options['$and'].push({ tenantId: id });
+      } else {
+        options['$and'] = [{ tenantId: id }];
       }
       try {
         if (showUnAssigned) {
@@ -151,11 +176,10 @@ export class AppController extends BaseController {
       }
       if (isActive) {
         // options['$and'] = [];
-       
-          options['$and'].push({ ['isActive']: isActive });
-      
+
+        options['$and'].push({ ['isActive']: isActive });
       }
-    
+
       const total = await this.eldService.count(options);
 
       let queryResponse;
