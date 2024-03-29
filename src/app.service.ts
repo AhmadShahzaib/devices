@@ -131,7 +131,20 @@ export class AppService extends BaseService<EldDocument> {
       throw err;
     }
   };
-
+  eldConnect = async (id: string, status: boolean): Promise<EldDocument> => {
+    try {
+      return await this.eldModel.findByIdAndUpdate(
+        id,
+        { isActive: status },
+        {
+          new: true,
+        },
+      );
+    } catch (err) {
+      Logger.error({ message: err.message, stack: err.stack });
+      throw err;
+    }
+  };
   findEldById = async (id: string, option: any = {}): Promise<EldDocument> => {
     try {
       const res = await this.eldModel

@@ -42,6 +42,7 @@ import GetByIdDecorators from './decorators/getById';
 import UpdateByIdDecorators from './decorators/updateById';
 import GetDecorators from './decorators/get';
 import IsActiveDecorators from './decorators/isActive';
+import connectedEldDecorators from './decorators/connectedEldDecorators';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import EldDocument from 'mongoDb/document/document';
 import { uploadDocument } from 'shared/uploadDocument';
@@ -280,7 +281,44 @@ export class AppController extends BaseController {
       throw error;
     }
   }
+  // @------------------- Edit ONE eld connected time API controller -------------------
+  @connectedEldDecorators()
+  async connectDeviceStatus(
+    @Param('id', MongoIdValidationPipe) id: string,
+    @Body() requestData: StatusRequest,
+    @Req() req: Request,
+    @Res() response: Response,
+  ) {
+    try {
+      Logger.log(`Device status was called with params: ${id}`);
+      Logger.log(
+        `${req.method} request received from ${req.ip} for ${
+          req.originalUrl
+        } by: ${
+          !response.locals.user ? 'Unauthorized User' : response.locals.user.id
+        }`,
+      );
+      const { isActive } = requestData;
+      const eldStatus = await this.eldService.eldConnect(id, isActive);
+      if (eldStatus && Object.keys(eldStatus).length > 0) {
+        await this.eldService.updateStatusInUnitService(id, isActive);
+        const result: EldResponse = new EldResponse(eldStatus);
+        Logger.log(`Device status changed successfully`);
+        return response.status(HttpStatus.OK).send({
+          message: 'Device status has been changed successfully',
+          data: result,
+        });
+      } else {
+        Logger.log(`Device not Found`);
+        throw new NotFoundException(`${id} does not exist`);
+      }
+    } catch (error) {
+      Logger.error({ message: error.message, stack: error.stack });
+      throw error;
+    }
+  }
   // @------------------- Get ONE eld API controller -------------------
+
   @GetByIdDecorators()
   async getDeviceById(
     @Param('id', MongoIdValidationPipe) id: string,

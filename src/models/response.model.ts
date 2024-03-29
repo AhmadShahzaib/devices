@@ -53,6 +53,9 @@ export class EldResponse extends BaseResponseType {
   softwareVersion: string;
 
   @ApiProperty()
+  connectDate: string;
+
+  @ApiProperty()
   isActive: boolean;
 
   @ApiProperty({ isArray: true, type: Doc })
@@ -68,6 +71,7 @@ export class EldResponse extends BaseResponseType {
     this.deviceType = eldDocument.deviceType;
     this.deviceToken = eldDocument.deviceToken;
     this.softwareVersion = eldDocument.softwareVersion;
+    this.connectDate = eldDocument.connectDate;
     this.isActive = eldDocument.isActive;
     this.serialNo = eldDocument.serialNo;
     this.notes = eldDocument.notes;

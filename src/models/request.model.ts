@@ -17,7 +17,7 @@ export class EldRequest {
     },
   })
   deviceDocument?: Express.Multer.File[];
-  
+
   documents?: Documents[] = [];
 
   @ApiProperty()
@@ -36,7 +36,7 @@ export class EldRequest {
   deviceName: string;
 
   @ApiProperty({
-    enum: DeviceTypes
+    enum: DeviceTypes,
   })
   @IsString()
   @IsEnum(DeviceTypes)
@@ -61,4 +61,8 @@ export class EldRequest {
   @IsString()
   softwareVersion: string;
 
+  @ApiProperty()
+  @IsOptional()
+  @IsString()
+  connectDate: string;
 }

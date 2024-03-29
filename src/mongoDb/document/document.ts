@@ -15,6 +15,7 @@ export default interface EldDocument extends Document {
   deviceVersion?: string;
   tenantId?: string;
   softwareVersion?: string;
+  connectDate?: string;
   isActive: boolean;
   isDeleted?: boolean;
   deviceToken?: string;

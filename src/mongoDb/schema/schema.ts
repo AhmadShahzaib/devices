@@ -23,6 +23,7 @@ export const EldSchema = new mongoose.Schema(
     deviceName: { type: String, required: true, index: true },
     deviceVersion: { type: String },
     softwareVersion: { type: String },
+    connectDate: { type: String },
     notes: { type: String },
     tenantId: { type: mongoose.Schema.Types.ObjectId },
     isDeleted: { type: Boolean, default: false },
