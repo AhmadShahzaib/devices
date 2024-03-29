@@ -135,7 +135,7 @@ export class AppService extends BaseService<EldDocument> {
     try {
       return await this.eldModel.findByIdAndUpdate(
         id,
-        { isActive: status },
+        { connectDate: status },
         {
           new: true,
         },
