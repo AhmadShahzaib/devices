@@ -285,7 +285,7 @@ export class AppController extends BaseController {
   @connectedEldDecorators()
   async connectDeviceStatus(
     @Param('id', MongoIdValidationPipe) id: string,
-    @Body() requestData: StatusRequest,
+    @Body() requestData: any,
     @Req() req: Request,
     @Res() response: Response,
   ) {
@@ -298,10 +298,10 @@ export class AppController extends BaseController {
           !response.locals.user ? 'Unauthorized User' : response.locals.user.id
         }`,
       );
-      const { isActive } = requestData;
-      const eldStatus = await this.eldService.eldConnect(id, isActive);
+      const { connectDate } = requestData;
+      const eldStatus = await this.eldService.eldConnect(id, connectDate);
       if (eldStatus && Object.keys(eldStatus).length > 0) {
-        await this.eldService.updateStatusInUnitService(id, isActive);
+        // await this.eldService.updateStatusInUnitService(id, isActive);
         const result: EldResponse = new EldResponse(eldStatus);
         Logger.log(`Device status changed successfully`);
         return response.status(HttpStatus.OK).send({

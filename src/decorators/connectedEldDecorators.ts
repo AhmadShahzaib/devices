@@ -19,7 +19,7 @@ import {
 import { EldResponse } from '../models/response.model';
 
 export default function connectedEldDecorators() {
-  const IsActiveDecorators: Array<CombineDecoratorType> = [
+  const connectedEldDecorators: Array<CombineDecoratorType> = [
     Patch('/connect/:id'),
     SetMetadata('permissions', [ELD.ACTIVATE]),
     ApiBearerAuth('access-token'),
