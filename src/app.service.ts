@@ -84,7 +84,7 @@ export class AppService extends BaseService<EldDocument> {
   getAssignedDevices = async (key: string): Promise<string[]> => {
     try {
       const resp = await firstValueFrom(
-        this.unitClient.send({ cmd: 'get_assigned' }, key),
+        this.unitClient.send({ cmd: 'get_assigned_vehicles' }, key),
       );
       if (resp.isError) {
         mapMessagePatternResponseToException(resp);

@@ -188,9 +188,22 @@ export class AppController extends BaseController {
         query.skip(((pageNo ?? 1) - 1) * (limit ?? 10)).limit(limit ?? 10);
       }
       queryResponse = await query.exec();
+      let assignedVehicle = await this.eldService.getAssignedDevices(
+        'deviceId',
+      );
       let data = [];
+      let index = 0;
       for (let eld of queryResponse) {
+        let eldId = JSON.stringify(eld._doc._id);
+        eldId = JSON.parse(eldId);
+        const foundObject = assignedVehicle.find(
+          (obj) => obj['deviceId'] == eldId,
+        );
         data.push(new EldResponse(eld));
+        if(foundObject){
+          data[index]["vehicleId"]=foundObject["vehicleId"];
+        }
+        index++;
       }
       return response.status(HttpStatus.OK).send({
         data: data,
