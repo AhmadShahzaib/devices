@@ -25,7 +25,6 @@ import {
   MessagePatternResponseInterceptor,
   BaseController,
   ListingParamsValidationPipe,
-  AwsService,
 } from '@shafiqrathore/logeld-tenantbackend-common-future';
 import {
   searchableAttributes,
@@ -52,15 +51,12 @@ import { Types } from 'mongoose';
 @Controller('ELD')
 @ApiTags('ELD')
 export class AppController extends BaseController {
-  constructor(
-    private readonly eldService: AppService,
-    private readonly awsService: AwsService,
-  ) {
+  constructor(private readonly eldService: AppService) {
     super();
   }
 
-  @MessagePattern({ cmd: 'get_device_by_id' })
   @UseInterceptors(new MessagePatternResponseInterceptor())
+  @MessagePattern({ cmd: 'get_device_by_id' })
   async tcp_getDeviceById(id: string): Promise<EldResponse | Error> {
     let device;
     let exception;
@@ -70,13 +66,32 @@ export class AppController extends BaseController {
 
       const option = {};
       // { isActive: true };
-      device = await deviceById(this.eldService, id, this.awsService, option);
+      device = await deviceById(this.eldService, id, option);
+      return device;
     } catch (err) {
       Logger.error({ message: err.message, stack: err.stack });
       exception = err;
+      return exception;
     }
+  }
 
-    return device ?? exception;
+  @UseInterceptors(MessagePatternResponseInterceptor)
+  @MessagePattern({ cmd: 'letIT_device_by_id' })
+  async tcp_letDeviceById(id: string): Promise<any | Error> {
+    try {
+      let device;
+      let exception;
+      Logger.log(`getDeviceById method call with id:${id}`);
+
+      const option = {};
+      // { isActive: true };
+      device = await deviceById(this.eldService, id, option);
+      return device;
+    } catch (err) {
+      Logger.error({ message: err.message, stack: err.stack });
+      return err;
+      // return  exception;
+    }
   }
 
   @MessagePattern({ cmd: 'get_device_by_no' })
@@ -197,11 +212,11 @@ export class AppController extends BaseController {
         let eldId = JSON.stringify(eld._doc._id);
         eldId = JSON.parse(eldId);
         const foundObject = assignedVehicle.find(
-          (obj) => obj['deviceId'] == eldId,
+          (obj) => obj['eldId'] == eldId,
         );
         data.push(new EldResponse(eld));
-        if(foundObject){
-          data[index]["vehicleId"]=foundObject["vehicleId"];
+        if (foundObject) {
+          data[index]['vehicleId'] = foundObject['vehicleId'];
         }
         index++;
       }
@@ -345,7 +360,7 @@ export class AppController extends BaseController {
           req.originalUrl
         } by: ${!res.locals.user ? 'Unauthorized User' : res.locals.user.id}`,
       );
-      const data = await deviceById(this.eldService, id, this.awsService);
+      const data = await deviceById(this.eldService, id);
       return res.status(HttpStatus.OK).send({
         message: 'Device Found',
         data: data,
@@ -388,7 +403,7 @@ export class AppController extends BaseController {
       // Docs uploading
       let deviceRequest = await uploadDocument(
         files?.deviceDocument,
-        this.awsService,
+        // this.awsService,
         eldModel,
         tenantId,
       );
@@ -470,7 +485,7 @@ export class AppController extends BaseController {
         }
         let deviceRequest = await uploadDocument(
           files?.deviceDocument,
-          this.awsService,
+          // this.awsService,
           editRequestData,
           tenantId,
         );
