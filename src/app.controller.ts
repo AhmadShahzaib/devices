@@ -388,7 +388,7 @@ export class AppController extends BaseController {
       const { tenantId } = request.user ?? ({ tenantId: undefined } as any);
       const option = {
         $and: [
-          { eldNo: { $regex: new RegExp(`^${eldModel.serialNo}`, 'i') } },
+          { serialNo: { $regex: new RegExp(`^${eldModel.serialNo}`, 'i') } },
           { isDeleted: false },
         ],
       };
