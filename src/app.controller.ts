@@ -136,7 +136,9 @@ export class AppController extends BaseController {
   ) {
     try {
       const options = {};
-      const { search, orderBy, orderType, pageNo, limit, showUnAssigned } =
+      const { search, orderBy, orderType, limit, showUnAssigned } =
+        queryParams;
+        let {  pageNo } =
         queryParams;
       const { tenantId: id } = request.user ?? ({ tenantId: undefined } as any);
       options['$and'] = [{ tenantId: id }];
@@ -219,6 +221,9 @@ export class AppController extends BaseController {
           data[index]['vehicleId'] = foundObject['vehicleId'];
         }
         index++;
+      }
+      if(data.length == 0 ){
+        if(pageNo > 1) {pageNo = pageNo-1 }
       }
       return response.status(HttpStatus.OK).send({
         data: data,
