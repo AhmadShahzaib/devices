@@ -302,7 +302,7 @@ export class AppController extends BaseController {
         const result: EldResponse = new EldResponse(eldStatus);
         Logger.log(`Device status changed successfully`);
         return response.status(HttpStatus.OK).send({
-          message: 'Device status has been changed successfully',
+          message: `ELD is ${isActive ? "activated": "deactivated"} successfully`,
           data: result,
         });
       } else {
