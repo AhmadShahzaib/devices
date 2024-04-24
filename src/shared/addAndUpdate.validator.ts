@@ -13,7 +13,7 @@ export const addAndUpdate = async (
   try {
     const device = await deviceService.findOne(option);
     if (device && Object.keys(device).length > 0) {
-      throw new ConflictException(`ELD number already exists`);
+      throw new ConflictException(`ELD serial number already exists`);
     } else {
       return requestModel;
     }

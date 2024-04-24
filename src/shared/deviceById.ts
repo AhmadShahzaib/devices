@@ -6,7 +6,7 @@ import EldDocument from 'mongoDb/document/document';
 export const deviceById = async (
   deviceService: AppService,
   id: string,
-  awsService: AwsService,
+
   option: any = {},
 ): Promise<EldResponse | Error> => {
   try {

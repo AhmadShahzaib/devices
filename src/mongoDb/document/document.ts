@@ -19,4 +19,5 @@ export default interface EldDocument extends Document {
   isActive: boolean;
   isDeleted?: boolean;
   deviceToken?: string;
+  // vehicleId?:string
 }

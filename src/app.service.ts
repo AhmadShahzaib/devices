@@ -19,6 +19,8 @@ export class AppService extends BaseService<EldDocument> {
     @InjectModel('Eld')
     private readonly eldModel: Model<EldDocument>,
     @Inject('UNIT_SERVICE') private readonly unitClient: ClientProxy,
+    @Inject('VEHICLE_SERVICE') private readonly vehicleClient: ClientProxy,
+
   ) {
     super();
     this._model = eldModel;
@@ -84,7 +86,7 @@ export class AppService extends BaseService<EldDocument> {
   getAssignedDevices = async (key: string): Promise<string[]> => {
     try {
       const resp = await firstValueFrom(
-        this.unitClient.send({ cmd: 'get_assigned' }, key),
+        this.vehicleClient.send({ cmd: 'get_all_vehicle' },{}),
       );
       if (resp.isError) {
         mapMessagePatternResponseToException(resp);

@@ -42,6 +42,21 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
         });
       },
       inject: [ConfigurationService],
+    }, {
+      provide: 'VEHICLE_SERVICE',
+      useFactory: (config: ConfigurationService) => {
+        const vehicleServicePort = config.get('VEHICLE_MICROSERVICE_PORT');
+        const vehicleServiceHost = config.get('VEHICLE_MICROSERVICE_HOST');
+
+        return ClientProxyFactory.create({
+          transport: Transport.TCP,
+          options: {
+            port: Number(vehicleServicePort),
+            host: vehicleServiceHost,
+          },
+        });
+      },
+      inject: [ConfigurationService],
     },
     {
       provide: APP_INTERCEPTOR,
