@@ -21,7 +21,7 @@ import { EldResponse } from '../models/response.model';
 export default function IsActiveDecorators() {
   const IsActiveDecorators: Array<CombineDecoratorType> = [
     Patch('/status/:id'),
-    SetMetadata('permissions', [ELD.ACTIVATE]),
+    SetMetadata('permissions', [ELD.DEACTIVATE]),
     ApiBearerAuth('access-token'),
     ApiResponse({ status: HttpStatus.OK, type: EldResponse }),
     ApiParam({
