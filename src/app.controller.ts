@@ -331,8 +331,8 @@ export class AppController extends BaseController {
           !response.locals.user ? 'Unauthorized User' : response.locals.user.id
         }`,
       );
-      const { connectDate } = requestData;
-      const eldStatus = await this.eldService.eldConnect(id, connectDate);
+      const { connectDate, serialNo, vehicleId, eldType } = requestData;
+      const eldStatus = await this.eldService.eldConnect(id, connectDate, serialNo, vehicleId, eldType);
       if (eldStatus && Object.keys(eldStatus).length > 0) {
         // await this.eldService.updateStatusInUnitService(id, isActive);
         const result: EldResponse = new EldResponse(eldStatus);

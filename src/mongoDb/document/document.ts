@@ -12,9 +12,11 @@ export default interface EldDocument extends Document {
   eldNo: string;
   documents?: Documents[];
   deviceType?: string;
+  eldType?: string;
   deviceVersion?: string;
   tenantId?: string;
   softwareVersion?: string;
+  vehicleId?: string;
   connectDate?: string;
   isActive: boolean;
   isDeleted?: boolean;

@@ -133,11 +133,11 @@ export class AppService extends BaseService<EldDocument> {
       throw err;
     }
   };
-  eldConnect = async (id: string, status: boolean): Promise<EldDocument> => {
+  eldConnect = async (id: string, status: boolean, serialNo: string, vehicleId: string, eldType: string): Promise<EldDocument> => {
     try {
       return await this.eldModel.findByIdAndUpdate(
         id,
-        { connectDate: status },
+        { connectDate: status, serialNo, vehicleId, eldType },
         {
           new: true,
         },
