@@ -52,8 +52,11 @@ export class EldResponse extends BaseResponseType {
   @ApiProperty()
   softwareVersion: string;
 
-  // @ApiProperty()
-  // vehicleId: string;
+  @ApiProperty()
+  vehicleId: string;
+
+  @ApiProperty()
+  eldType: string;
 
   @ApiProperty()
   connectDate: string;
@@ -78,7 +81,9 @@ export class EldResponse extends BaseResponseType {
     this.isActive = eldDocument.isActive;
     this.serialNo = eldDocument.serialNo;
     this.notes = eldDocument.notes;
-    // this.vehicleId = eldDocument.vehicleId
+    this.vehicleId = eldDocument.vehicleId;
+    this.eldType = eldDocument.eldType;
+
     this.documents = eldDocument.documents.map((keys) => new Doc(keys));
   }
 }
