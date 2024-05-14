@@ -334,9 +334,15 @@ export class AppController extends BaseController {
         }`,
       );
       let eldStatus;
-      const { id, connectDate } = requestData;
+      const { id, connectDate, serialNo, vehicleId, eldType } = requestData;
       if (id != '') {
-        eldStatus = await this.eldService.eldConnect(id, connectDate);
+        eldStatus = await this.eldService.eldConnect(
+          id,
+          connectDate,
+          serialNo,
+          vehicleId,
+          eldType,
+        );
       } else {
         const { tenantId } = req.user ?? ({ tenantId: undefined } as any);
         eldStatus = await this.eldService.addEld(requestData, tenantId);
@@ -347,7 +353,10 @@ export class AppController extends BaseController {
         const result: EldResponse = new EldResponse(eldStatus);
         Logger.log(`Device status changed successfully`);
         return response.status(HttpStatus.OK).send({
-          message: 'Device status has been changed successfully',
+          message:
+            id == ''
+              ? 'Device created successfully!'
+              : 'Device status has been changed successfully!',
           data: result,
         });
       } else {

@@ -16,7 +16,7 @@ import { EldResponse } from '../models/response.model';
 export default function GetByIdDecorators() {
   const GetByIdDecorators: Array<CombineDecoratorType> = [
     Get(':id'),
-    SetMetadata('permissions', [ELD.GETBYID]),
+    SetMetadata('permissions', [ELD.LIST]),
     ApiBearerAuth('access-token'),
     ApiResponse({ status: HttpStatus.OK, type: EldResponse }),
     ApiParam({
