@@ -20,7 +20,6 @@ export class AppService extends BaseService<EldDocument> {
     private readonly eldModel: Model<EldDocument>,
     @Inject('UNIT_SERVICE') private readonly unitClient: ClientProxy,
     @Inject('VEHICLE_SERVICE') private readonly vehicleClient: ClientProxy,
-
   ) {
     super();
     this._model = eldModel;
@@ -36,6 +35,26 @@ export class AppService extends BaseService<EldDocument> {
     }
   };
 
+  updateEldIdInVehicle = async (
+    vehicleId: string,
+    eldId: string,
+  ): Promise<string[]> => {
+    try {
+      const resp = await firstValueFrom(
+        this.vehicleClient.send(
+          { cmd: 'update_eldId_in_vehicle' },
+          { vehicleId, eldId },
+        ),
+      );
+      if (resp.isError) {
+        mapMessagePatternResponseToException(resp);
+      }
+      return resp.data;
+    } catch (err) {
+      Logger.log(err);
+      throw err;
+    }
+  };
   deviceByNo = async (option: any) => {
     try {
       let response;
@@ -86,7 +105,7 @@ export class AppService extends BaseService<EldDocument> {
   getAssignedDevices = async (key: string): Promise<string[]> => {
     try {
       const resp = await firstValueFrom(
-        this.vehicleClient.send({ cmd: 'get_all_vehicle' },{}),
+        this.vehicleClient.send({ cmd: 'get_all_vehicle' }, {}),
       );
       if (resp.isError) {
         mapMessagePatternResponseToException(resp);
@@ -133,7 +152,13 @@ export class AppService extends BaseService<EldDocument> {
       throw err;
     }
   };
-  eldConnect = async (id: string, status: boolean, serialNo: string, vehicleId: string, eldType: string): Promise<EldDocument> => {
+  eldConnect = async (
+    id: string,
+    status: boolean,
+    serialNo: string,
+    vehicleId: string,
+    eldType: string,
+  ): Promise<EldDocument> => {
     try {
       return await this.eldModel.findByIdAndUpdate(
         id,

@@ -346,6 +346,8 @@ export class AppController extends BaseController {
       } else {
         const { tenantId } = req.user ?? ({ tenantId: undefined } as any);
         eldStatus = await this.eldService.addEld(requestData, tenantId);
+        const eldId = eldStatus._doc._id.toString(); // changing from objectID to string
+        await this.eldService.updateEldIdInVehicle(vehicleId, eldId);
       }
 
       if (eldStatus && Object.keys(eldStatus).length > 0) {
