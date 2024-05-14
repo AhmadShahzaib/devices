@@ -1,8 +1,4 @@
-import {
-  HttpStatus,
-  Patch,
-  SetMetadata,
-} from '@nestjs/common';
+import { HttpStatus, Patch, SetMetadata } from '@nestjs/common';
 
 import {
   ApiParam,
@@ -20,14 +16,15 @@ import { EldResponse } from '../models/response.model';
 
 export default function connectedEldDecorators() {
   const connectedEldDecorators: Array<CombineDecoratorType> = [
-    Patch('/connect/:id'),
-    SetMetadata('permissions', [ELD.EDIT]),
+    // Patch('/connect/:id'),
+    Patch('/connect'),
+    SetMetadata('permissions', [ELD.ACTIVATE]),
     ApiBearerAuth('access-token'),
     ApiResponse({ status: HttpStatus.OK, type: EldResponse }),
-    ApiParam({
-      name: 'id',
-      description: 'The ID of the Eld you want to change the status',
-    }),
+    // ApiParam({
+    //   name: 'id',
+    //   description: 'The ID of the Eld you want to change the status',
+    // }),
   ];
   return CombineDecorators(connectedEldDecorators);
 }
