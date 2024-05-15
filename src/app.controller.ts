@@ -413,10 +413,10 @@ export class AppController extends BaseController {
       const { tenantId } = request.user ?? ({ tenantId: undefined } as any);
       const option = {
         $and: [
-          { serialNo: { $regex: new RegExp(`^${eldModel.serialNo}`, 'i') } },
+          { serialNo: { $regex: new RegExp(`^${eldModel.serialNo}`, 'i') } },{ tenantId: tenantId }
         ],
       };
-
+     
       // Find eld
       const deviceResponse = await addAndUpdate(
         this.eldService,
