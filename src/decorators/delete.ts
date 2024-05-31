@@ -11,7 +11,7 @@ import {
 export default function DeleteDecorators() {
   const DeleteDecorators: Array<CombineDecoratorType> = [
     Delete(':id'),
-    SetMetadata('permissions', [ELD.DELETE]),
+    SetMetadata('permissions', [ELD.DEACTIVATE]),
     ApiBearerAuth('access-token'),
     ApiResponse({ status: HttpStatus.OK }),
     ApiParam({

@@ -136,10 +136,8 @@ export class AppController extends BaseController {
   ) {
     try {
       const options = {};
-      const { search, orderBy, orderType, limit, showUnAssigned } =
-        queryParams;
-        let {  pageNo } =
-        queryParams;
+      const { search, orderBy, orderType, limit, showUnAssigned } = queryParams;
+      let { pageNo } = queryParams;
       const { tenantId: id } = request.user ?? ({ tenantId: undefined } as any);
       options['$and'] = [{ tenantId: id }];
 
@@ -222,8 +220,10 @@ export class AppController extends BaseController {
         }
         index++;
       }
-      if(data.length == 0 ){
-        if(pageNo > 1) {pageNo = pageNo-1 }
+      if (data.length == 0) {
+        if (pageNo > 1) {
+          pageNo = pageNo - 1;
+        }
       }
       return response.status(HttpStatus.OK).send({
         data: data,
@@ -302,7 +302,9 @@ export class AppController extends BaseController {
         const result: EldResponse = new EldResponse(eldStatus);
         Logger.log(`Device status changed successfully`);
         return response.status(HttpStatus.OK).send({
-          message: `ELD is ${isActive ? "activated": "deactivated"} successfully`,
+          message: `ELD is ${
+            isActive ? 'activated' : 'deactivated'
+          } successfully`,
           data: result,
         });
       } else {
@@ -317,13 +319,13 @@ export class AppController extends BaseController {
   // @------------------- Edit ONE eld connected time API controller -------------------
   @connectedEldDecorators()
   async connectDeviceStatus(
-    @Param('id', MongoIdValidationPipe) id: string,
+    // @Param('id', MongoIdValidationPipe) id: string,
     @Body() requestData: any,
     @Req() req: Request,
     @Res() response: Response,
   ) {
     try {
-      Logger.log(`Device status was called with params: ${id}`);
+      Logger.log(`Device status was called with params: ${requestData.id}`);
       Logger.log(
         `${req.method} request received from ${req.ip} for ${
           req.originalUrl
@@ -331,14 +333,32 @@ export class AppController extends BaseController {
           !response.locals.user ? 'Unauthorized User' : response.locals.user.id
         }`,
       );
-      const { connectDate } = requestData;
-      const eldStatus = await this.eldService.eldConnect(id, connectDate);
+      let eldStatus;
+      const { id, connectDate, serialNo, vehicleId, eldType } = requestData;
+      if (id != '') {
+        eldStatus = await this.eldService.eldConnect(
+          id,
+          connectDate,
+          serialNo,
+          vehicleId,
+          eldType,
+        );
+      } else {
+        const { tenantId } = req.user ?? ({ tenantId: undefined } as any);
+        eldStatus = await this.eldService.addEld(requestData, tenantId);
+        const eldId = eldStatus._doc._id.toString(); // changing from objectID to string
+        await this.eldService.updateEldIdInVehicle(vehicleId, eldId);
+      }
+
       if (eldStatus && Object.keys(eldStatus).length > 0) {
         // await this.eldService.updateStatusInUnitService(id, isActive);
         const result: EldResponse = new EldResponse(eldStatus);
         Logger.log(`Device status changed successfully`);
         return response.status(HttpStatus.OK).send({
-          message: 'Device status has been changed successfully',
+          message:
+            id == ''
+              ? 'Device created successfully!'
+              : 'Device status has been changed successfully!',
           data: result,
         });
       } else {
@@ -393,11 +413,10 @@ export class AppController extends BaseController {
       const { tenantId } = request.user ?? ({ tenantId: undefined } as any);
       const option = {
         $and: [
-          { serialNo: { $regex: new RegExp(`^${eldModel.serialNo}`, 'i') } }
-        
+          { serialNo: { $regex: new RegExp(`^${eldModel.serialNo}`, 'i') } },{ tenantId: tenantId }
         ],
       };
-
+     
       // Find eld
       const deviceResponse = await addAndUpdate(
         this.eldService,
