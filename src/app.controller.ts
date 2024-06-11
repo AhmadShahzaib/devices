@@ -413,10 +413,11 @@ export class AppController extends BaseController {
       const { tenantId } = request.user ?? ({ tenantId: undefined } as any);
       const option = {
         $and: [
-          { serialNo: { $regex: new RegExp(`^${eldModel.serialNo}`, 'i') } },{ tenantId: tenantId }
+          { serialNo: { $regex: new RegExp(`^${eldModel.serialNo}`, 'i') } },
+          { tenantId: tenantId },
         ],
       };
-     
+
       // Find eld
       const deviceResponse = await addAndUpdate(
         this.eldService,
@@ -486,7 +487,7 @@ export class AppController extends BaseController {
       const { tenantId } = request.user ?? ({ tenantId: undefined } as any);
       Logger.log(`Request to update device  with param id:${id}`);
       const option = {
-        eldNo: { $regex: new RegExp(`^${editRequestData.eldNo}`, 'i') },
+        serialNo: { $regex: new RegExp(`^${editRequestData.serialNo}`, 'i') },
         $and: [{ _id: { $ne: id }, isDeleted: false }],
       };
       const deviceResponse = await addAndUpdate(
