@@ -1,6 +1,6 @@
 trigger:
-- main
 - dev
+- qa
 
 pool:
   vmImage: ubuntu-latest
