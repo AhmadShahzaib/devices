@@ -203,22 +203,25 @@ export class AppController extends BaseController {
         query.skip(((pageNo ?? 1) - 1) * (limit ?? 10)).limit(limit ?? 10);
       }
       queryResponse = await query.exec();
-      const assignedVehicle = await this.eldService.getAssignedDevices(
-        'deviceId',
-      );
       const data = [];
-      let index = 0;
       for (const eld of queryResponse) {
-        let eldId = JSON.stringify(eld._doc._id);
-        eldId = JSON.parse(eldId);
-        const foundObject = assignedVehicle.find(
-          (obj) => obj['eldId'] == eldId,
-        );
-        data.push(new EldResponse(eld));
-        if (foundObject) {
-          data[index]['vehicleId'] = foundObject['vehicleId'];
+        const jsonEld = eld.toJSON();
+        const vehicleDetails = await this.eldService.populateVehicle(eld._id);
+        if (vehicleDetails?.data) {
+          jsonEld.vehicleId = vehicleDetails?.data?.vehicleId || '';
         }
-        index++;
+        jsonEld.id = eld?.id;
+        data.push(new EldResponse(jsonEld));
+        // let eldId = JSON.stringify(eld._doc._id);
+        // eldId = JSON.parse(eldId);
+        // const foundObject = assignedVehicle.find(
+        //   (obj) => obj['eldId'] == eldId,
+        // );
+        // data.push(new EldResponse(eld));
+        // if (foundObject) {
+        //   data[index]['vehicleId'] = foundObject['vehicleId'];
+        // }
+        // index++;
       }
       if (data.length == 0) {
         if (pageNo > 1) {

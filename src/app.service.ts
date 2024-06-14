@@ -105,7 +105,7 @@ export class AppService extends BaseService<EldDocument> {
   getAssignedDevices = async (key: string): Promise<string[]> => {
     try {
       const resp = await firstValueFrom(
-        this.vehicleClient.send({ cmd: 'get_all_vehicle' }, {}),
+        this.unitClient.send({ cmd: 'get_assigned' }, key),
       );
       if (resp.isError) {
         mapMessagePatternResponseToException(resp);
@@ -115,6 +115,18 @@ export class AppService extends BaseService<EldDocument> {
       Logger.log(err);
       throw err;
     }
+    // try {
+    //   const resp = await firstValueFrom(
+    //     this.vehicleClient.send({ cmd: 'get_all_vehicle' }, {}),
+    //   );
+    //   if (resp.isError) {
+    //     mapMessagePatternResponseToException(resp);
+    //   }
+    //   return resp.data;
+    // } catch (err) {
+    //   Logger.log(err);
+    //   throw err;
+    // }
   };
   updateEld = async (id: string, eld: EditRequest): Promise<EldDocument> => {
     try {
@@ -262,6 +274,22 @@ export class AppService extends BaseService<EldDocument> {
     } catch (error) {
       this.logger.error({ message: error.message, stack: error.stack });
       throw error;
+    }
+  };
+
+  populateVehicle = async (id: string, option: any = {}) => {
+    try {
+      const resp = await firstValueFrom(
+        this.vehicleClient.send(
+          { cmd: 'get_assigned_vehicle_by_deviceId' },
+          id,
+        ),
+      );
+      return resp;
+    } catch (err) {
+      Logger.error({ message: err.message, stack: err.stack });
+      Logger.log({ id });
+      throw err;
     }
   };
 
