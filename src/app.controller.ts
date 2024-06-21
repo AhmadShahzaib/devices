@@ -139,7 +139,7 @@ export class AppController extends BaseController {
       const { search, orderBy, orderType, limit, showUnAssigned } = queryParams;
       let { pageNo } = queryParams;
       const { tenantId: id } = request.user ?? ({ tenantId: undefined } as any);
-      options['$and'] = [{ tenantId: id }];
+      // options['$and'] = [{ tenantId: id }];
 
       let isActive = queryParams.isActive;
       const arr = [];
@@ -178,7 +178,7 @@ export class AppController extends BaseController {
       try {
         if (showUnAssigned) {
           const assignedVehicle = await this.eldService.getAssignedDevices(
-            'deviceId',
+            'eldId',
           );
           Object.assign(options, { _id: { $nin: assignedVehicle } });
         }
@@ -299,6 +299,14 @@ export class AppController extends BaseController {
         }`,
       );
       const { isActive } = requestData;
+
+      const checkAssign: boolean =
+        await this.eldService.isDeviceAssignedVehicle(id);
+      if (checkAssign) {
+        throw new ConflictException(
+          `Device is already associated with the Vehicle`,
+        );
+      }
       const eldStatus = await this.eldService.eldStatus(id, isActive);
       if (eldStatus && Object.keys(eldStatus).length > 0) {
         await this.eldService.updateStatusInUnitService(id, isActive);
