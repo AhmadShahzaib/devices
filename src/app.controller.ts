@@ -62,7 +62,7 @@ export class AppController extends BaseController {
     let exception;
 
     try {
-      Logger.log(`getDeviceById method call with id:${id}`);
+      Logger.log(`get DeviceById method call with id:${id}`);
 
       const option = {};
       // { isActive: true };
@@ -139,10 +139,10 @@ export class AppController extends BaseController {
       const { search, orderBy, orderType, limit, showUnAssigned } = queryParams;
       let { pageNo } = queryParams;
       const { tenantId: id } = request.user ?? ({ tenantId: undefined } as any);
-      options['$and'] = [{ tenantId: id }];
+      // options['$and'] = [{ tenantId: id }];
 
       let isActive = queryParams.isActive;
-      let arr = [];
+      const arr = [];
       arr.push(isActive);
       if (arr.includes('true')) {
         isActive = true;
@@ -177,8 +177,8 @@ export class AppController extends BaseController {
       }
       try {
         if (showUnAssigned) {
-          let assignedVehicle = await this.eldService.getAssignedDevices(
-            'deviceId',
+          const assignedVehicle = await this.eldService.getAssignedDevices(
+            'eldId',
           );
           Object.assign(options, { _id: { $nin: assignedVehicle } });
         }
@@ -203,22 +203,25 @@ export class AppController extends BaseController {
         query.skip(((pageNo ?? 1) - 1) * (limit ?? 10)).limit(limit ?? 10);
       }
       queryResponse = await query.exec();
-      let assignedVehicle = await this.eldService.getAssignedDevices(
-        'deviceId',
-      );
-      let data = [];
-      let index = 0;
-      for (let eld of queryResponse) {
-        let eldId = JSON.stringify(eld._doc._id);
-        eldId = JSON.parse(eldId);
-        const foundObject = assignedVehicle.find(
-          (obj) => obj['eldId'] == eldId,
-        );
-        data.push(new EldResponse(eld));
-        if (foundObject) {
-          data[index]['vehicleId'] = foundObject['vehicleId'];
+      const data = [];
+      for (const eld of queryResponse) {
+        const jsonEld = eld.toJSON();
+        const vehicleDetails = await this.eldService.populateVehicle(eld._id);
+        if (vehicleDetails?.data) {
+          jsonEld.vehicleId = vehicleDetails?.data?.vehicleId || '';
         }
-        index++;
+        jsonEld.id = eld?.id;
+        data.push(new EldResponse(jsonEld));
+        // let eldId = JSON.stringify(eld._doc._id);
+        // eldId = JSON.parse(eldId);
+        // const foundObject = assignedVehicle.find(
+        //   (obj) => obj['eldId'] == eldId,
+        // );
+        // data.push(new EldResponse(eld));
+        // if (foundObject) {
+        //   data[index]['vehicleId'] = foundObject['vehicleId'];
+        // }
+        // index++;
       }
       if (data.length == 0) {
         if (pageNo > 1) {
@@ -296,6 +299,14 @@ export class AppController extends BaseController {
         }`,
       );
       const { isActive } = requestData;
+
+      const checkAssign: boolean =
+        await this.eldService.isDeviceAssignedVehicle(id);
+      if (checkAssign) {
+        throw new ConflictException(
+          `Device is already associated with the Vehicle`,
+        );
+      }
       const eldStatus = await this.eldService.eldStatus(id, isActive);
       if (eldStatus && Object.keys(eldStatus).length > 0) {
         await this.eldService.updateStatusInUnitService(id, isActive);
@@ -426,7 +437,7 @@ export class AppController extends BaseController {
       );
 
       // Docs uploading
-      let deviceRequest = await uploadDocument(
+      const deviceRequest = await uploadDocument(
         files?.deviceDocument,
         // this.awsService,
         eldModel,
@@ -497,7 +508,7 @@ export class AppController extends BaseController {
       );
 
       if (deviceResponse) {
-        let assignedDevices = await this.eldService.getAssignedDevices(
+        const assignedDevices = await this.eldService.getAssignedDevices(
           'deviceId',
         );
 
@@ -508,7 +519,7 @@ export class AppController extends BaseController {
         ) {
           delete editRequestData.serialNo;
         }
-        let deviceRequest = await uploadDocument(
+        const deviceRequest = await uploadDocument(
           files?.deviceDocument,
           // this.awsService,
           editRequestData,

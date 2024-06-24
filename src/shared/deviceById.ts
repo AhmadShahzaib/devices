@@ -11,7 +11,7 @@ export const deviceById = async (
 ): Promise<EldResponse | Error> => {
   try {
     let device = null;
-    if (!!id) {
+    if (id) {
       device = await deviceService.findEldById(id, option);
       Logger.log(`Device with id: ${id} was found`);
     } else {
