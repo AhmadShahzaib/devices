@@ -499,7 +499,7 @@ export class AppController extends BaseController {
       Logger.log(`Request to update device  with param id:${id}`);
       const option = {
         serialNo: { $regex: new RegExp(`^${editRequestData.serialNo}`, 'i') },
-        $and: [{ _id: { $ne: id }, isDeleted: false }],
+        $and: [{ _id: { $ne: id }, isDeleted: false }, { tenantId: tenantId }],
       };
       const deviceResponse = await addAndUpdate(
         this.eldService,
