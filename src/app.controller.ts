@@ -62,7 +62,7 @@ export class AppController extends BaseController {
     let exception;
 
     try {
-      Logger.log(`getDeviceById method call with id:${id}`);
+      Logger.log(`get DeviceById method call with id:${id}`);
 
       const option = {};
       // { isActive: true };
