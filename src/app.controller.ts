@@ -207,9 +207,10 @@ export class AppController extends BaseController {
       for (const eld of queryResponse) {
         const jsonEld = eld.toJSON();
         const vehicleDetails = await this.eldService.populateVehicle(eld._id);
-        if (vehicleDetails?.data) {
-          jsonEld.vehicleId = vehicleDetails?.data?.vehicleId || '';
-        }
+        // if (vehicleDetails?.data) {
+        //   jsonEld.vehicleId = vehicleDetails?.data?.vehicleId || '';
+        // }
+        jsonEld.vehicleId = vehicleDetails?.data?.vehicleId || '';
         jsonEld.id = eld?.id;
         data.push(new EldResponse(jsonEld));
         // let eldId = JSON.stringify(eld._doc._id);
@@ -344,21 +345,33 @@ export class AppController extends BaseController {
           !response.locals.user ? 'Unauthorized User' : response.locals.user.id
         }`,
       );
+      const { tenantId } = req.user ?? ({ tenantId: undefined } as any);
       let eldStatus;
-      const { id, connectDate, serialNo, vehicleId, eldType } = requestData;
+      const { id, connectDate, serialNo, vehicleId, deviceType, deviceName } =
+        requestData;
       if (id != '') {
         eldStatus = await this.eldService.eldConnect(
           id,
           connectDate,
           serialNo,
           vehicleId,
-          eldType,
+          deviceType,
+        );
+        await this.eldService.updateEldIdInVehicle(
+          vehicleId,
+          tenantId,
+          id,
+          deviceName,
         );
       } else {
-        const { tenantId } = req.user ?? ({ tenantId: undefined } as any);
         eldStatus = await this.eldService.addEld(requestData, tenantId);
         const eldId = eldStatus._doc._id.toString(); // changing from objectID to string
-        await this.eldService.updateEldIdInVehicle(vehicleId, eldId);
+        await this.eldService.updateEldIdInVehicle(
+          vehicleId,
+          tenantId,
+          eldId,
+          deviceName,
+        );
       }
 
       if (eldStatus && Object.keys(eldStatus).length > 0) {
