@@ -37,13 +37,15 @@ export class AppService extends BaseService<EldDocument> {
 
   updateEldIdInVehicle = async (
     vehicleId: string,
+    tenantId: string,
     eldId: string,
+    deviceName: string,
   ): Promise<string[]> => {
     try {
       const resp = await firstValueFrom(
         this.vehicleClient.send(
           { cmd: 'update_eldId_in_vehicle' },
-          { vehicleId, eldId },
+          { vehicleId, tenantId, eldId, deviceName },
         ),
       );
       if (resp.isError) {
@@ -169,12 +171,12 @@ export class AppService extends BaseService<EldDocument> {
     status: boolean,
     serialNo: string,
     vehicleId: string,
-    eldType: string,
+    deviceType: string,
   ): Promise<EldDocument> => {
     try {
       return await this.eldModel.findByIdAndUpdate(
         id,
-        { connectDate: status, serialNo, vehicleId, eldType },
+        { connectDate: status, serialNo, vehicleId, deviceType },
         {
           new: true,
         },
