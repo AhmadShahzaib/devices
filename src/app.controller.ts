@@ -93,7 +93,7 @@ export class AppController extends BaseController {
       // return  exception;
     }
   }
-
+//
   @MessagePattern({ cmd: 'get_device_by_no' })
   // @UseInterceptors(new MessagePatternResponseInterceptor())
   async tcp_getDeviceByNo(eldNo: string): Promise<EldResponse | Error> {
