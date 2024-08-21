@@ -1,5 +1,5 @@
 import { Model, Schema, FilterQuery, ProjectionType } from 'mongoose';
-import { Injectable, Logger, Inject } from '@nestjs/common';
+import { Injectable, Logger, Inject, NotFoundException } from '@nestjs/common';
 import {
   BaseService,
   mapMessagePatternResponseToException,
@@ -54,7 +54,7 @@ export class AppService extends BaseService<EldDocument> {
       return resp.data;
     } catch (err) {
       Logger.log(err);
-      throw err;
+      throw new NotFoundException(`vehicle not exist`);
     }
   };
   deviceByNo = async (option: any) => {
