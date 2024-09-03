@@ -94,7 +94,7 @@ export class AppController extends BaseController {
       // return  exception;
     }
   }
-//
+  //
   @MessagePattern({ cmd: 'get_device_by_no' })
   // @UseInterceptors(new MessagePatternResponseInterceptor())
   async tcp_getDeviceByNo(eldNo: string): Promise<EldResponse | Error> {
@@ -481,14 +481,34 @@ export class AppController extends BaseController {
           deviceName,
         );
       } else {
-        eldStatus = await this.eldService.addEld(requestData, tenantId);
-        const eldId = eldStatus._doc._id.toString(); // changing from objectID to string
-        await this.eldService.updateEldIdInVehicle(
-          vehicleId,
-          tenantId,
-          eldId,
-          deviceName,
+        const option = {
+          $and: [
+            {
+              serialNo: { $regex: new RegExp(`^${requestData.serialNo}`, 'i') },
+            },
+            { tenantId: tenantId },
+          ],
+        };
+        const deviceResponse = await addAndUpdate(
+          this.eldService,
+          requestData,
+          option,
         );
+        if (deviceResponse) {
+          eldStatus = await this.eldService.addEld(requestData, tenantId);
+          try {
+            const eldId = eldStatus._doc._id.toString(); // changing from objectID to string
+            await this.eldService.updateEldIdInVehicle(
+              vehicleId,
+              tenantId,
+              eldId,
+              deviceName,
+            );
+          } catch (error) {
+            Logger.log(`vehicle not Found`);
+            throw new NotFoundException(`vehicle not exist`);
+          }
+        }
       }
 
       if (eldStatus && Object.keys(eldStatus).length > 0) {
