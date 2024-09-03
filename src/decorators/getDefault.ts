@@ -16,7 +16,7 @@ import { EldResponse } from '../models/response.model';
 
 export default function GetDefaultDecorators() {
   const GetDefaultDecorators: Array<CombineDecoratorType> = [
-    Get(),
+    Get("/default"),
     SetMetadata('permissions', ["d41e39f3a"]),
     ApiBearerAuth('access-token'),
     ApiResponse({ status: HttpStatus.OK, type: EldResponse }),
