@@ -40,6 +40,7 @@ import DeleteDecorators from './decorators/delete';
 import GetByIdDecorators from './decorators/getById';
 import UpdateByIdDecorators from './decorators/updateById';
 import GetDecorators from './decorators/get';
+import GetDefaultDecorators from './decorators/getDefault'
 import IsActiveDecorators from './decorators/isActive';
 import connectedEldDecorators from './decorators/connectedEldDecorators';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
@@ -93,7 +94,7 @@ export class AppController extends BaseController {
       // return  exception;
     }
   }
-
+  //
   @MessagePattern({ cmd: 'get_device_by_no' })
   // @UseInterceptors(new MessagePatternResponseInterceptor())
   async tcp_getDeviceByNo(eldNo: string): Promise<EldResponse | Error> {
@@ -126,7 +127,123 @@ export class AppController extends BaseController {
       throw err;
     }
   }
+  @GetDefaultDecorators()
+  async getDefaultEldDevice(
+    @Query(ListingParamsValidationPipe) queryParams: ListingParams,
+    @Req() request: Request,
+    @Res() response: Response,
+  ) {
+    try {
+      const options = {};
+      const { search, orderBy, orderType, limit, showUnAssigned } = queryParams;
+      let { pageNo } = queryParams;
+      const { tenantId: id } = request.user ?? ({ tenantId: undefined } as any);
+      // options['$and'] = [{ tenantId: id }];
 
+      let isActive = queryParams.isActive;
+      const arr = [];
+      arr.push(isActive);
+      if (arr.includes('true')) {
+        isActive = true;
+      } else {
+        isActive = false;
+      }
+
+      if (search) {
+        options['$or'] = [];
+        searchableAttributes.forEach((attribute) => {
+          options['$or'].push({ [attribute]: new RegExp(search, 'i') });
+        });
+        if (arr[0]) {
+          options['$and'] = [];
+          isActiveinActive.forEach((attribute) => {
+            options['$and'].push({ [attribute]: isActive });
+          });
+        }
+      } else {
+        if (arr[0]) {
+          options['$or'] = [];
+
+          isActiveinActive.forEach((attribute) => {
+            options['$or'].push({ [attribute]: isActive });
+          });
+        }
+      }
+      if (options.hasOwnProperty('$and')) {
+        options['$and'].push({ tenantId: id });
+      } else {
+        options['$and'] = [{ tenantId: id }];
+      }
+      try {
+        if (showUnAssigned) {
+          const assignedVehicle = await this.eldService.getAssignedDevices(
+            'eldId',
+          );
+          Object.assign(options, { _id: { $nin: assignedVehicle } });
+        }
+      } catch (err) {}
+      const query = this.eldService.find(options);
+
+      if (orderBy && sortableAttributes.includes(orderBy)) {
+        query.collation({ locale: 'en' }).sort({ [orderBy]: orderType ?? 1 });
+      } else {
+        query.sort({ createdAt: 1 });
+      }
+      if (isActive) {
+        // options['$and'] = [];
+
+        options['$and'].push({ ['isActive']: isActive });
+      }
+
+      const total = await this.eldService.count(options);
+
+      let queryResponse;
+      if (!limit || !isNaN(limit)) {
+        query.skip(((pageNo ?? 1) - 1) * (limit ?? 10)).limit(limit ?? 10);
+      }
+      queryResponse = await query.exec();
+      const data = [];
+      for (const eld of queryResponse) {
+        const jsonEld = eld.toJSON();
+        const vehicleDetails = await this.eldService.populateVehicle(eld._id);
+        // if (vehicleDetails?.data) {
+        //   jsonEld.vehicleId = vehicleDetails?.data?.vehicleId || '';
+        // }
+        jsonEld.vehicleId = vehicleDetails?.data?.vehicleId || '';
+        jsonEld.id = eld?.id;
+        data.push(new EldResponse(jsonEld));
+        // let eldId = JSON.stringify(eld._doc._id);
+        // eldId = JSON.parse(eldId);
+        // const foundObject = assignedVehicle.find(
+        //   (obj) => obj['eldId'] == eldId,
+        // );
+        // data.push(new EldResponse(eld));
+        // if (foundObject) {
+        //   data[index]['vehicleId'] = foundObject['vehicleId'];
+        // }
+        // index++;
+      }
+      if (data.length == 0) {
+        if (pageNo > 1) {
+          pageNo = pageNo - 1;
+        }
+      }
+      return response.status(HttpStatus.OK).send({
+        data: data,
+        total,
+        pageNo: pageNo ?? 1,
+        last_page: Math.ceil(
+          total /
+            (limit && limit.toString().toLowerCase() === 'all'
+              ? total
+              : limit ?? 10),
+        ),
+      });
+    } catch (error) {
+      Logger.error({ message: error.message, stack: error.stack });
+      throw error;
+    }
+  }
   // @------------------- Get Eld API controller -------------------
   @GetDecorators()
   async getEldDevice(
@@ -207,9 +324,10 @@ export class AppController extends BaseController {
       for (const eld of queryResponse) {
         const jsonEld = eld.toJSON();
         const vehicleDetails = await this.eldService.populateVehicle(eld._id);
-        if (vehicleDetails?.data) {
-          jsonEld.vehicleId = vehicleDetails?.data?.vehicleId || '';
-        }
+        // if (vehicleDetails?.data) {
+        //   jsonEld.vehicleId = vehicleDetails?.data?.vehicleId || '';
+        // }
+        jsonEld.vehicleId = vehicleDetails?.data?.vehicleId || '';
         jsonEld.id = eld?.id;
         data.push(new EldResponse(jsonEld));
         // let eldId = JSON.stringify(eld._doc._id);
@@ -344,21 +462,53 @@ export class AppController extends BaseController {
           !response.locals.user ? 'Unauthorized User' : response.locals.user.id
         }`,
       );
+      const { tenantId } = req.user ?? ({ tenantId: undefined } as any);
       let eldStatus;
-      const { id, connectDate, serialNo, vehicleId, eldType } = requestData;
+      const { id, connectDate, serialNo, vehicleId, deviceType, deviceName } =
+        requestData;
       if (id != '') {
         eldStatus = await this.eldService.eldConnect(
           id,
           connectDate,
           serialNo,
           vehicleId,
-          eldType,
+          deviceType,
+        );
+        await this.eldService.updateEldIdInVehicle(
+          vehicleId,
+          tenantId,
+          id,
+          deviceName,
         );
       } else {
-        const { tenantId } = req.user ?? ({ tenantId: undefined } as any);
-        eldStatus = await this.eldService.addEld(requestData, tenantId);
-        const eldId = eldStatus._doc._id.toString(); // changing from objectID to string
-        await this.eldService.updateEldIdInVehicle(vehicleId, eldId);
+        const option = {
+          $and: [
+            {
+              serialNo: { $regex: new RegExp(`^${requestData.serialNo}`, 'i') },
+            },
+            { tenantId: tenantId },
+          ],
+        };
+        const deviceResponse = await addAndUpdate(
+          this.eldService,
+          requestData,
+          option,
+        );
+        if (deviceResponse) {
+          eldStatus = await this.eldService.addEld(requestData, tenantId);
+          try {
+            const eldId = eldStatus._doc._id.toString(); // changing from objectID to string
+            await this.eldService.updateEldIdInVehicle(
+              vehicleId,
+              tenantId,
+              eldId,
+              deviceName,
+            );
+          } catch (error) {
+            Logger.log(`vehicle not Found`);
+            throw new NotFoundException(`vehicle not exist`);
+          }
+        }
       }
 
       if (eldStatus && Object.keys(eldStatus).length > 0) {
